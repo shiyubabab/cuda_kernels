@@ -1,6 +1,6 @@
-
-
-
+#include<stdio.h>
+#include<cuda.h>
+#include<cuda_runtime.h>
 
 __global__ void block_mul(float *d_A, float *d_B, float *d_C){
 	__shared__ float Mds[BLOCK_SIZE][BLOCK_SIZE];
@@ -20,4 +20,8 @@ __global__ void block_mul(float *d_A, float *d_B, float *d_C){
 
 	}
 	d_C[row * K + col] = P;
+}
+
+int main(void){
+
 }
