@@ -2,7 +2,7 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 
-__global__ void hello_cude(){
+__global__ void hello_cuda(){
 	unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x;
 	printf("block id [%d], thread id [%d] and hello cuda!!!\n",blockIdx.x,idx);
 }
