@@ -11,9 +11,9 @@ __global__ void reduce_v3(const float *input,float *output){
 	sdata[tid] = input[index]+input[index + blockSize];
 	__syncthreads();
 
-	for(unsigned int epoll = blockSize / 2;epoll>0;epoll>>=1){
-		if(tid<epoll){
-			sdata[tid] += sdata[tid + epll];
+	for(unsigned int s = blockSize / 2;s>0;s>>=1){
+		if(tid<s){
+			sdata[tid] += sdata[tid + s];
 		}
 		__syncthreads();
 	}

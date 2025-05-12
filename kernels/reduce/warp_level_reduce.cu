@@ -2,23 +2,44 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 
-template<int blockSize>
-__global__ void reduce_v2(const float *input,float *output){
-	int tid = threadIdx.x;
-	__shared__ float sdata[blockSize];
+__device__ float WarpShuffle(float sum){
+	sum += __shlf_down_sync(0xffffffff,sum,16);
+	sum += __shlf_down_sync(0xffffffff,sum,8);
+	sum += __shlf_down_sync(0xffffffff,sum,4);
+	sum += __shlf_down_sync(0xffffffff,sum,2);
+	sum += __shlf_down_sync(0xffffffff,sum,1);
+	return sum;
+}
 
-	sdata[tid] = input[tid];
+template<int blockSize>
+__global__ void reduce_v4(const float *input,float *output,unsigned int n){
+	float sum = 0;
+
+	int tid = threadIdx.x;
+	int gtid = threadIdx.x + blockIdx.x * blockSize;
+
+	unsigned int total_thread_num = blockSize * gridDim.x;
+
+	for(int i = gtid;i<n;i+=total_thread_num){
+		sum += input[i];
+	}
+
+	__shared__ float warpsums[blockSize/32];
+	const int laneId = tid % 32;
+	const int warpId = tid / 32;
+	sum = WarpShffle(sum);
+	if(laneId == 0){
+		warpsums[warpId] = sum;
+	}
 	__syncthreads();
 
-	for(unsigned int s = blockSize / 2;s>0;s>>=1){
-		if(tid<s){
-			sdata[tid] += sdata[tid + s];
-		}
-		__syncthreads();
+	sum = (tid<blockSize/32) ? warpsums[laneId] : 0;
+	if(warpId == 0){
+		sum = WarpShffle(sum);
 	}
 
 	if(tid == 0){
-		output[blockIdx.x] = sdata[tid];
+		output[blockIdx.x] = sum;
 	}
 }
 
@@ -47,7 +68,7 @@ int main(void){
 	cudaEventCreate(&start);
 	cudaEventCreate(&stop);
 	cudaEventRecord(start);
-	reduce_v2<blockSize><<<Grid,Block>>>(d_mem,d_ret);
+	reduce_v4<blockSize><<<Grid,Block>>>(d_mem,d_ret);
 	cudaEventRecord(stop);
 	cudaEventSynchronize(stop);
 	cudaEventElapsedTime(&milliseconds,start,stop);

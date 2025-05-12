@@ -2,22 +2,49 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 
-__device__ void WarpShareMemReduce(volatile float *smem,int tid){
-	float x = smem[tid];
-	if(blockDim.x >= 64){
-		x+=smem[tid+32];__syncwarp();
-		smem[tid] = x; __syncwarp();
+__device__ void BlockSharedMemReduce(float *smem){
+	if(blockSize>=1024){
+		if(threadIdx.x<512){
+			smem[threadIdx.x] += smem[threadIdx.x];
+		}
+		__syncthreads();
 	}
-	x+=smem[tid+16];__syncwarp();
-	smem[tid] = x; __syncwarp();
-	x+=smem[tid+8];__syncwarp();
-	smem[tid] = x; __syncwarp();
-	x+=smem[tid+4];__syncwarp();
-	smem[tid] = x; __syncwarp();
-	x+=smem[tid+2];__syncwarp();
-	smem[tid] = x; __syncwarp();
-	x+=smem[tid+1];__syncwarp();
-	smem[tid] = x; __syncwarp();
+	if(blockSize>=512){
+		if(threadIdx.x<256){
+			smem[threadIdx.x] += smem[threadIdx.x];
+		}
+		__syncthreads();
+	}
+	if(blockSize>=256){
+		if(threadIdx.x<128){
+			smem[threadIdx.x] += smem[threadIdx.x];
+		}
+		__syncthreads();
+	}
+	if(blockSize>=128){
+		if(threadIdx.x<64){
+			smem[threadIdx.x] += smem[threadIdx.x];
+		}
+		__syncthreads();
+	}
+	if(threadIdx.x < 32){
+		volatile float *vshm = smem;
+		float x = vshm[tid];
+		if(blockDim.x >= 64){
+			x+=vshm[tid+32];__syncwarp();
+			vshm[tid] = x; __syncwarp();
+		}
+		x+=vshm[tid+16];__syncwarp();
+		vshm[tid] = x; __syncwarp();
+		x+=vshm[tid+8];__syncwarp();
+		vshm[tid] = x; __syncwarp();
+		x+=vshm[tid+4];__syncwarp();
+		vshm[tid] = x; __syncwarp();
+		x+=vshm[tid+2];__syncwarp();
+		vshm[tid] = x; __syncwarp();
+		x+=vshm[tid+1];__syncwarp();
+		vshm[tid] = x; __syncwarp();
+	}
 }
 
 template<int blockSize>
@@ -29,12 +56,7 @@ __global__ void reduce_v4(const float *input,float *output){
 	sdata[tid] = input[index]+input[index + blockSize];
 	__syncthreads();
 
-	for(unsigned int s = blockSize / 2;s>32;s>>=1){
-		if(tid<s){
-			sdata[tid] += sdata[tid + s];
-		}
-		__syncthreads();
-	}
+	BlockShareMemReduce<blockSize>(smem);
 
 	if(tid == 0){
 		output[blockIdx.x] = sdata[tid];

@@ -10,9 +10,9 @@ __global__ void reduce_v0(const float *input,float *output){
 	sdata[tid] = input[tid];
 	__syncthreads();
 
-	for(int epoll = 1; epoll < blockSize;epoll *= 2){
-		if(tid% (epoll * 2)==0){
-			sdata[tid] += sdata[tid + epll];
+	for(int s = 1; s < blockSize;s *= 2){
+		if(tid% (s * 2)==0){
+			sdata[tid] += sdata[tid + s];
 		}
 		__syncthreads();
 	}
