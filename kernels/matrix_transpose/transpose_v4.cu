@@ -15,7 +15,7 @@ __global__ void matrix_transpose_v0(const float *input,float *output,int X,int Y
 	int gty = blockIdx.y * blockSize + ty;
 
 	if(gty<Y && gtx<X){
-		FETCH_FLOAT4(sdata[ty][tx * 4]) = FETCH_FLOAT4(input[gty * Y + x]);
+		FETCH_FLOAT4(sdata[ty][tx * 4]) = FETCH_FLOAT4(input[gty * Y + gtx]);
 	}
 	__syncthreads();
 
@@ -26,7 +26,7 @@ __global__ void matrix_transpose_v0(const float *input,float *output,int X,int Y
 		for(int i = 0;i<4;i++){
 			tmp[i] = sdata[tx*4+i][ty];
 		}
-		FETCH_FLOAT4(output[gty*Y+x]) = FETCH_FLOAT4(tmp);
+		FETCH_FLOAT4(output[gty*Y+gtx]) = FETCH_FLOAT4(tmp);
 	}
 }
 
