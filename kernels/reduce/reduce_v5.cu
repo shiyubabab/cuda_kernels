@@ -49,7 +49,7 @@ __device__ void BlockSharedMemReduce(float *smem){
 }
 
 template<int blockSize>
-__global__ void reduce_v4(const float *input,float *output){
+__global__ void reduce_v5(const float *input,float *output){
 	__shared__ float sdata[blockSize];
 	int tid = threadIdx.x;
 	int index = threadIdx.x + blockIdx.x * (blockSize*2);
@@ -89,7 +89,7 @@ int main(void){
 	cudaEventCreate(&start);
 	cudaEventCreate(&stop);
 	cudaEventRecord(start);
-	reduce_v4<blockSize/2><<<Grid,Block>>>(d_mem,d_ret);
+	reduce_v5<blockSize/2><<<Grid,Block>>>(d_mem,d_ret);
 	cudaEventRecord(stop);
 	cudaEventSynchronize(stop);
 	cudaEventElapsedTime(&milliseconds,start,stop);

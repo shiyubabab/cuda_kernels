@@ -12,7 +12,7 @@ __device__ float WarpShuffle(float sum){
 }
 
 template<int blockSize>
-__global__ void reduce_v4(const float *input,float *output,unsigned int n){
+__global__ void reduce_v6(const float *input,float *output,unsigned int n){
 	float sum = 0;
 
 	int tid = threadIdx.x;
@@ -27,7 +27,7 @@ __global__ void reduce_v4(const float *input,float *output,unsigned int n){
 	__shared__ float warpsums[blockSize/32];
 	const int laneId = tid % 32;
 	const int warpId = tid / 32;
-	sum = WarpShffle(sum);
+	sum = WarpShuffle(sum);
 	if(laneId == 0){
 		warpsums[warpId] = sum;
 	}
@@ -68,7 +68,7 @@ int main(void){
 	cudaEventCreate(&start);
 	cudaEventCreate(&stop);
 	cudaEventRecord(start);
-	reduce_v4<blockSize><<<Grid,Block>>>(d_mem,d_ret);
+	reduce_v6<blockSize><<<Grid,Block>>>(d_mem,d_ret);
 	cudaEventRecord(stop);
 	cudaEventSynchronize(stop);
 	cudaEventElapsedTime(&milliseconds,start,stop);
