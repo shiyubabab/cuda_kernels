@@ -29,21 +29,21 @@ __device__ void BlockSharedMemReduce(float *smem){
 	}
 	if(threadIdx.x < 32){
 		volatile float *vshm = smem;
-		float x = vshm[tid];
+		float x = vshm[threadIdx.x];
 		if(blockDim.x >= 64){
-			x+=vshm[tid+32];__syncwarp();
-			vshm[tid] = x; __syncwarp();
+			x+=vshm[threadIdx.x+32];__syncwarp();
+			vshm[threadIdx.x] = x; __syncwarp();
 		}
-		x+=vshm[tid+16];__syncwarp();
-		vshm[tid] = x; __syncwarp();
-		x+=vshm[tid+8];__syncwarp();
-		vshm[tid] = x; __syncwarp();
-		x+=vshm[tid+4];__syncwarp();
-		vshm[tid] = x; __syncwarp();
-		x+=vshm[tid+2];__syncwarp();
-		vshm[tid] = x; __syncwarp();
-		x+=vshm[tid+1];__syncwarp();
-		vshm[tid] = x; __syncwarp();
+		x+=vshm[threadIdx.x+16];__syncwarp();
+		vshm[threadIdx.x] = x; __syncwarp();
+		x+=vshm[threadIdx.x+8];__syncwarp();
+		vshm[threadIdx.x] = x; __syncwarp();
+		x+=vshm[threadIdx.x+4];__syncwarp();
+		vshm[threadIdx.x] = x; __syncwarp();
+		x+=vshm[threadIdx.x+2];__syncwarp();
+		vshm[threadIdx.x] = x; __syncwarp();
+		x+=vshm[threadIdx.x+1];__syncwarp();
+		vshm[threadIdx.x] = x; __syncwarp();
 	}
 }
 
