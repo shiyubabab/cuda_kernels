@@ -17,7 +17,7 @@ __global__ void matrix_transpose_v0(const float *input,float *output,int X,int Y
 
 	gtx = blockIdx.y * blockSize + tx;
 	gty = blockIdx.x * blockSize + ty;
-	if(gty<Y && gtx<X){
+	if(gty<X && gtx<Y){
 		output[gty * Y + gtx] = sdata[tx][ty];
 	}
 }

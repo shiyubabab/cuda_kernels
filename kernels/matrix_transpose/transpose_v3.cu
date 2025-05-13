@@ -22,7 +22,7 @@ __global__ void matrix_transpose_v0(const float *input,float *output,int X,int Y
 
 	gtx = blockIdx.y * blockSize + tx;
 	gty = blockIdx.x * blockSize + ty;
-	if(gty<Y){
+	if(gty<X){
 		for(int x = gtx;x<X;x+=gridDim.x*blockDim.x){
 			if(x<X){
 				output[gty * Y + x] = sdata[tx][ty];
