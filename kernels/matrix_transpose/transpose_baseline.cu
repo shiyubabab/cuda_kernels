@@ -7,7 +7,7 @@ __global__ void matrix_transpose_v0(const float *input,float *output,int X,int Y
 	const int gtx = blockIdx.x * blockDim.x + threadIdx.x;
 	const int gty = blockIdx.y * blockDim.y + threadIdx.y;
 
-	if(y<Y && x<X){
+	if(gty<Y && gtx<X){
 		output[gty * Y + gtx] = input[gty * X + gtx];
 	}
 }
@@ -41,7 +41,7 @@ int main(void){
 	cudaEventCreate(&stop);
 	cudaEventRecord(start);
 
-	matrix_transpose_v0<16>(d_input,d_output,X,Y);
+	matrix_transpose_v0<blockSize><<<grid,block>>>(d_input,d_output,X,Y);
 
 	cudaEventRecord(stop);
 	cudaEventSynchronize(stop);
@@ -51,7 +51,7 @@ int main(void){
 	printf("matrix transpose latency = %f ms \n",milliseconds);
 	cudaFree(d_input);
 	cudaFree(d_output);
-	Free(h_input);
-	Free(h_output);
+	free(h_input);
+	free(h_output);
 	return 0;
 }
