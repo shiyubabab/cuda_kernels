@@ -57,7 +57,7 @@ __global__ void reduce_v4(const float *input,float *output){
 	sdata[tid] = input[index]+input[index + blockSize];
 	__syncthreads();
 
-	BlockShareMemReduce<blockSize>(sdata);
+	BlockSharedMemReduce<blockSize>(sdata);
 
 	if(tid == 0){
 		output[blockIdx.x] = sdata[tid];
