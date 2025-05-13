@@ -2,6 +2,7 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 
+template<int blockSize>
 __device__ void BlockSharedMemReduce(float *smem){
 	if(blockSize>=1024){
 		if(threadIdx.x<512){
@@ -56,7 +57,7 @@ __global__ void reduce_v4(const float *input,float *output){
 	sdata[tid] = input[index]+input[index + blockSize];
 	__syncthreads();
 
-	BlockShareMemReduce<blockSize>(smem);
+	BlockShareMemReduce<blockSize>(sdata);
 
 	if(tid == 0){
 		output[blockIdx.x] = sdata[tid];
